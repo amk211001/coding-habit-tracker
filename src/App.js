@@ -86,6 +86,10 @@ function App() {
     console.log('Habits:', habits);
   };
 
+  const deleteHabit = (id) => {
+    setHabits(habits.filter(h => h.id !== id));
+  };
+
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [calendarMode, setCalendarMode] = useState('90day'); // '90day' | 'weekly' | 'monthly'
   const [newlyUnlocked, setNewlyUnlocked] = useState([]);
@@ -250,8 +254,8 @@ function App() {
           ) : (
             <>
               {calendarMode === 'weekly' ? (
-                <div>
-                  <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2">
+                <div className="overflow-x-auto">
+                  <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2 min-w-max">
                     {currentWeekDays.map(day => (
                       <div key={day ? day.toISOString() : 'empty-' + Math.random()}>{day ? format(day, 'EEE') : ''}</div>
                     ))}
@@ -259,7 +263,7 @@ function App() {
                   {filteredHabits.map(habit => (
                     <div key={habit.id} className="mb-4">
                       <div className="font-bold">{habit.name}</div>
-                      <div className="grid grid-cols-7 gap-2 text-center">
+                      <div className="grid grid-cols-7 gap-2 text-center min-w-max">
                         {currentWeekDays.map(day => {
                           if (!day) return <div key={'empty-' + Math.random()} className="h-8 w-8 rounded bg-gray-100 pointer-events-none" />;
                           const done = isCompletedOn(habit, day);
@@ -280,8 +284,8 @@ function App() {
                   ))}
                 </div>
               ) : calendarMode === 'monthly' ? (
-                <div>
-                  <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2">
+                <div className="overflow-x-auto">
+                  <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2 min-w-max">
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                       <div key={day}>{day}</div>
                     ))}
@@ -289,7 +293,7 @@ function App() {
                   {filteredHabits.map(habit => (
                     <div key={habit.id} className="mb-4">
                       <div className="font-bold">{habit.name}</div>
-                      <div className="grid grid-cols-7 gap-2 text-center">
+                      <div className="grid grid-cols-7 gap-2 text-center min-w-max">
                         {currentWeekDays.map((day, idx) => {
                           if (day === null) {
                             return <div key={idx} className="h-6 w-6 rounded bg-gray-100 pointer-events-none" />;
@@ -314,8 +318,8 @@ function App() {
               ) : (
                 <div className="habit-list">
                   {filteredHabits.map((habit) => (
-                    <div key={habit.id} className="habit-card p-4 border rounded mb-4">
-                      <div className="font-bold">{habit.name} - {habit.category}</div>
+                    <div key={habit.id} className="habit-card p-3 sm:p-4 border rounded mb-4 w-full">
+                      <div className="font-bold text-sm sm:text-base">{habit.name} - {habit.category}</div>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {habit.achievements.slice(0,3).map(aid => {
                           const ach = achievements.find(a => a.id === aid);
@@ -327,8 +331,9 @@ function App() {
                               key={aid}
                               initial={isNew ? { scale: 0 } : { scale: 1 }}
                               animate={{ scale: 1 }}
+                              whileHover={{ scale: 1.05 }}
                               transition={{ duration: 0.5 }}
-                              className={`badge ${bgColor} text-white inline-flex items-center gap-1 px-2 py-1 rounded cursor-pointer`}
+                              className={`badge ${bgColor} text-white inline-flex items-center gap-1 px-3 py-2 sm:px-2 sm:py-1 rounded cursor-pointer`}
                               title={`${ach.name} - ${ach.condition}`}
                             >
                               <Icon size={16} />
@@ -336,7 +341,16 @@ function App() {
                           );
                         })}
                       </div>
-                      <button onClick={() => { setSelectedHabit(habit); setModalOpen(true); }} className="mt-2 px-2 py-1 bg-gray-500 text-white rounded">View All Achievements</button>
+                      <div className="mt-2">
+                        <div className="text-sm">Streak: {calculateStreak(habit)}</div>
+                        <div className="w-full bg-gray-200 rounded-full h-6">
+                          <div className="bg-blue-600 h-6 rounded-full" style={{ width: `${Math.min(calculateStreak(habit) / 30 * 100, 100)}%` }}></div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <button onClick={() => { setSelectedHabit(habit); setModalOpen(true); }} className="px-3 py-2 sm:px-2 sm:py-1 bg-gray-500 text-white rounded">View All Achievements</button>
+                        <button onClick={() => deleteHabit(habit.id)} className="px-3 py-2 sm:px-2 sm:py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+                      </div>
                     </div>
                   ))}
                 </div>
