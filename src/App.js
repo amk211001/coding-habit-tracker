@@ -10,6 +10,7 @@ const initialHabits = [
 function App() {
   const [habits, setHabits] = useState(initialHabits);
   const [newHabit, setNewHabit] = useState({ name: '', category: 'General' });
+  const categories = ['Coding', 'Learning', 'Project', 'Review', 'General'];
 
   const addHabit = () => {
     if (newHabit.category.trim() === '') {
@@ -38,13 +39,14 @@ function App() {
           onChange={(e) => setNewHabit({ ...newHabit, name: e.target.value })}
         />
 
-        {/* Input for new habit category */}
-        <input
-          type="text"
-          placeholder="Category"
+        {/* Select for new habit category */}
+        <select
           value={newHabit.category}
           onChange={(e) => setNewHabit({ ...newHabit, category: e.target.value })}
-        />
+          className="w-full max-w-sm p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+        </select>
 
         {/* Button to add habit */}
         <button onClick={addHabit}>Add Habit</button>
