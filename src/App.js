@@ -10,6 +10,7 @@ function App() {
   const [habits, setHabits] = useState(initialHabits);
   const [newHabit, setNewHabit] = useState({ name: '', category: 'General' });
   const [accessibility, setAccessibility] = useState({ largeText: false, highContrast: false });
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const categories = ['Coding', 'Learning', 'Project', 'Review', 'General'];
 
   const addHabit = () => {
@@ -36,6 +37,10 @@ function App() {
     accessibility.largeText ? "large-text" : "",
     accessibility.highContrast ? "high-contrast" : ""
   ].join(" ").trim();
+
+  const filteredHabits = selectedCategory === 'All'
+    ? habits
+    : habits.filter(habit => habit.category === selectedCategory);
 
   return (
     <div className={appClasses}>
@@ -68,16 +73,35 @@ function App() {
         {/* Button to add habit */}
         <button onClick={addHabit}>Add Habit</button>
 
+        {/* Filter buttons */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {['All', ...categories].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(selectedCategory === cat ? 'All' : cat)}
+              className={`px-3 py-1 rounded-full border ${
+                selectedCategory === cat ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'
+              } focus:outline-none`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
         {/* Display current habits */}
         <div style={{ marginTop: '20px', textAlign: 'left' }}>
           <h3>Current Habits:</h3>
-          <ul>
-            {habits.map((habit) => (
-              <li key={habit.id}>
-                {habit.name} - Category: {habit.category}
-              </li>
-            ))}
-          </ul>
+          {filteredHabits.length === 0 ? (
+            <p>No habits in this category</p>
+          ) : (
+            <ul>
+              {filteredHabits.map((habit) => (
+                <li key={habit.id}>
+                  {habit.name} - Category: {habit.category}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <a
