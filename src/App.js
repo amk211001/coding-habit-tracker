@@ -12,8 +12,9 @@ import subWeeks from 'date-fns/subWeeks';
 import addWeeks from 'date-fns/addWeeks';
 import subMonths from 'date-fns/subMonths';
 import addMonths from 'date-fns/addMonths';
+import subDays from 'date-fns/subDays';
 import { useSwipeable } from 'react-swipeable';
-import { Award, Star, Medal } from 'lucide-react';
+import { Award, Star, Medal, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const achievements = [
@@ -54,6 +55,21 @@ function App() {
       else break;
     }
     return streak;
+  };
+
+  // Calculate average completions per week over the last days
+  const averageCompletion = (habit, days = 30) => {
+    const endDate = new Date();
+    const startDate = subDays(endDate, days);
+    const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
+    let completionCount = 0;
+    dateRange.forEach(day => {
+      if (isCompletedOn(habit, day)) {
+        completionCount++;
+      }
+    });
+    const averagePerWeek = (completionCount / days) * 7;
+    return averagePerWeek;
   };
 
   // Check and award achievements for a habit
@@ -289,7 +305,7 @@ function App() {
                       ))}
                     </div>
                     {filteredHabits.map(habit => (
-                      <div key={habit.id} className="mb-4">
+                      <div key={habit.id} className="mb-4 min-w-max">
                         <div className="font-bold">{habit.name}</div>
                         <div className="grid grid-cols-7 gap-2 text-center min-w-max">
                           {currentWeekDays.map(day => {
@@ -319,7 +335,7 @@ function App() {
                     ))}
                   </div>
                   {filteredHabits.map(habit => (
-                    <div key={habit.id} className="mb-4">
+                    <div key={habit.id} className="mb-4 min-w-max">
                       <div className="font-bold">{habit.name}</div>
                       <div className="grid grid-cols-7 gap-2 text-center min-w-max">
                         {currentWeekDays.map((day, idx) => {
@@ -374,6 +390,10 @@ function App() {
                         <div className="w-full bg-gray-200 rounded-full h-6">
                           <div className="bg-blue-600 h-6 rounded-full" style={{ width: `${Math.min(calculateStreak(habit) / 30 * 100, 100)}%` }}></div>
                         </div>
+                        <div className="mt-2 flex items-center gap-2">
+                          <TrendingUp size={16} />
+                          <span className="text-sm">Avg: {averageCompletion(habit).toFixed(1)} days/week</span>
+                        </div>
                       </div>
                       <div className="flex gap-2 mt-2">
                         <button onClick={() => { setSelectedHabit(habit); setModalOpen(true); }} className="px-3 py-2 sm:px-2 sm:py-1 bg-gray-500 text-white rounded">View All Achievements</button>
@@ -399,27 +419,34 @@ function App() {
 
       {modalOpen && selectedHabit && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
+          onClick={() => setModalOpen(false)}
         >
-          <div className="bg-white p-4 rounded max-w-md w-full shadow-lg">
-            <h3 id="modal-title" className="text-lg font-bold mb-4">Achievements for {selectedHabit.name}</h3>
-            <ul className="space-y-2 max-h-96 overflow-y-auto">
+          <div
+            className="bg-white p-6 rounded-lg max-w-md w-full shadow-2xl transform transition-transform duration-300 ease-in-out hover:scale-105"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 id="modal-title" className="text-xl font-bold mb-4 text-gray-900">Achievements for {selectedHabit.name}</h3>
+            <ul className="space-y-3 max-h-96 overflow-y-auto">
               {achievements.map(ach => {
                 const unlocked = selectedHabit.achievements.includes(ach.id);
                 const Icon = ach.icon === 'Award' ? Award : ach.icon === 'Star' ? Star : Medal;
                 return (
-                  <li key={ach.id} className="flex items-center gap-2">
+                  <li key={ach.id} className="flex items-center gap-3 text-gray-800 hover:text-indigo-600 transition-colors cursor-default">
                     {unlocked ? <span className="text-green-500">✅</span> : <span className="text-gray-400">❌</span>}
-                    <Icon size={16} />
+                    <Icon size={20} />
                     <span className={unlocked ? 'font-semibold' : ''}>{ach.name} - {ach.condition}</span>
                   </li>
                 );
               })}
             </ul>
-            <button onClick={() => setModalOpen(false)} className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+            <button
+              onClick={() => setModalOpen(false)}
+              className="mt-6 px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
               Close
             </button>
           </div>
