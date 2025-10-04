@@ -34,12 +34,47 @@ function App() {
 
   console.log('Achievements:', achievements);
 
+  // Calculate streak for a habit
+  const calculateStreak = (habit) => {
+    if (!habit.completions.length) return 0;
+    const sortedDates = habit.completions
+      .map(d => new Date(d))
+      .sort((a, b) => b - a);
+    let streak = 1;
+    for (let i = 1; i < sortedDates.length; i++) {
+      const diff = (sortedDates[i - 1] - sortedDates[i]) / (1000 * 60 * 60 * 24);
+      if (diff === 1) streak++;
+      else break;
+    }
+    return streak;
+  };
+
+  // Check and award achievements for a habit
+  const checkAndAwardAchievements = (habit) => {
+    const streak = calculateStreak(habit);
+    let newAchievements = [...habit.achievements];
+    if (streak >= 7 && !newAchievements.includes('streak7')) {
+      newAchievements.push('streak7');
+      console.log(`Achievement unlocked for habit ${habit.name}: Novice Coder`);
+    }
+    if (streak >= 30 && !newAchievements.includes('streak30')) {
+      newAchievements.push('streak30');
+      console.log(`Achievement unlocked for habit ${habit.name}: Intermediate Coder`);
+    }
+    if (streak >= 100 && !newAchievements.includes('streak100')) {
+      newAchievements.push('streak100');
+      console.log(`Achievement unlocked for habit ${habit.name}: Expert Coder`);
+    }
+    // Add other achievement checks as needed
+    return newAchievements;
+  };
+
   const addHabit = () => {
     if (newHabit.category.trim() === '') {
       console.error('Category cannot be empty');
       return;
     }
-    const habitToAdd = { ...newHabit, id: Date.now(), completions: [] };
+    const habitToAdd = { ...newHabit, id: Date.now(), completions: [], achievements: [] };
     setHabits([...habits, habitToAdd]);
     setNewHabit({ name: '', category: 'General' });
     console.log('Habits:', habits);
@@ -93,6 +128,31 @@ function App() {
     return habit.completions.some(date => format(date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'));
   };
 
+  // Toggle completion for a habit on a day
+  const toggleCompletion = (habitId, day) => {
+    setHabits(prevHabits => {
+      return prevHabits.map(habit => {
+        if (habit.id !== habitId) return habit;
+        const dayStr = format(day, 'yyyy-MM-dd');
+        const hasCompleted = habit.completions.some(d => format(d, 'yyyy-MM-dd') === dayStr);
+        let newCompletions;
+        if (hasCompleted) {
+          newCompletions = habit.completions.filter(d => format(d, 'yyyy-MM-dd') !== dayStr);
+        } else {
+          newCompletions = [...habit.completions, day];
+        }
+        const updatedHabit = { ...habit, completions: newCompletions };
+        updatedHabit.achievements = checkAndAwardAchievements(updatedHabit);
+        return updatedHabit;
+      });
+    });
+  };
+
+  // UI handler to toggle completion on click
+  const handleCompletionClick = (habitId, day) => {
+    toggleCompletion(habitId, day);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -117,6 +177,34 @@ function App() {
         >
           Add Habit
         </button>
+
+        {/* Achievements display */}
+        <div className="mb-4 w-full max-w-sm text-left">
+          <h4 className="font-semibold mb-2">Achievements:</h4>
+          {habits.map(habit => (
+            <div key={habit.id} className="mb-2 border p-2 rounded bg-gray-50">
+              <div className="font-bold">{habit.name}</div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {habit.achievements.length === 0 ? (
+                  <span className="text-gray-500 italic">No achievements yet</span>
+                ) : (
+                  habit.achievements.map(aid => {
+                    const ach = achievements.find(a => a.id === aid);
+                    return (
+                      <span
+                        key={aid}
+                        className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-semibold"
+                        title={ach ? ach.name : aid}
+                      >
+                        {ach ? ach.name : aid}
+                      </span>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
 
         {/* Filter buttons */}
         <div className="flex flex-wrap gap-2 mb-4">
