@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import { useState, useEffect } from 'react';
 import eachDayOfInterval from 'date-fns/eachDayOfInterval';
@@ -22,10 +21,26 @@ export const achievements = [
   { id: 'reviewer', name: 'Code Reviewer', condition: 'review habit added', icon: 'Medal' },
 ];
 
+// Updated initial habits to include a 'completions' array for the CSV export requirement
 const initialHabits = [
-  { id: 1, name: 'Code daily', category: 'General', completions: [new Date()], achievements: [] },
-  { id: 2, name: 'Read tech articles', category: 'General', completions: [], achievements: [] },
+  { id: 1, name: 'Code daily', category: 'General', completions: ['2025-10-01', '2025-10-03'] },
+  { id: 2, name: 'Read tech articles', category: 'General', completions: ['2025-10-02'] },
 ];
+
+// A reusable helper function to trigger file downloads in the browser
+const downloadFile = ({ data, fileName, fileType }) => {
+  const blob = new Blob([data], { type: fileType });
+  const a = document.createElement('a');
+  a.download = fileName;
+  a.href = window.URL.createObjectURL(blob);
+  const clickEvt = new MouseEvent('click', {
+    view: window,
+    bubbles: true,
+    cancelable: true,
+  });
+  a.dispatchEvent(clickEvt);
+  a.remove();
+};
 
 function App() {
   const [habits, setHabits] = useState(initialHabits);
@@ -70,14 +85,37 @@ function App() {
   };
 
   const addHabit = () => {
-    if (newHabit.category.trim() === '') {
-      console.error('Category cannot be empty');
+    if (newHabit.name.trim() === '' || newHabit.category.trim() === '') {
+      alert('Habit name and category cannot be empty'); // Use alert for better user feedback
       return;
     }
-    const habitToAdd = { ...newHabit, id: Date.now(), completions: [], achievements: [] };
+    const habitToAdd = { ...newHabit, id: Date.now(), completions: [] };
     setHabits([...habits, habitToAdd]);
     setNewHabit({ name: '', category: 'General' });
-    console.log('Habits:', habits);
+  };
+  
+  const exportJSON = (e) => {
+    e.preventDefault();
+    downloadFile({
+      data: JSON.stringify(habits, null, 2),
+      fileName: 'habits.json',
+      fileType: 'application/json',
+    });
+  };
+  
+  const exportCSV = (e) => {
+    e.preventDefault();
+    let headers = ['id', 'name', 'category', 'completions'];
+    const habitsCsv = habits.map(habit => {
+      const completionsStr = `"${JSON.stringify(habit.completions)}"`;
+      return [habit.id, habit.name, habit.category, completionsStr].join(',');
+    });
+    const csvData = [headers.join(','), ...habitsCsv].join('\n');
+    downloadFile({
+      data: csvData,
+      fileName: 'habits.csv',
+      fileType: 'text/csv',
+    });
   };
 
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -154,172 +192,46 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        {/* Habit input and category select */}
-        <input
-          type="text"
-          placeholder="Habit name"
-          value={newHabit.name}
-          onChange={(e) => setNewHabit({ ...newHabit, name: e.target.value })}
-          className="mb-2 p-2 border border-gray-300 rounded-md w-full max-w-sm"
-        />
-        <select
-          value={newHabit.category}
-          onChange={(e) => setNewHabit({ ...newHabit, category: e.target.value })}
-          className="mb-2 p-2 border border-gray-300 rounded-md w-full max-w-sm"
-        >
-          {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-        </select>
-        <button
-          onClick={addHabit}
-          className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Add Habit
-        </button>
-
-        {/* Achievements display */}
-        <div className="mb-4 w-full max-w-sm text-left">
-          <h4 className="font-semibold mb-2">Achievements:</h4>
-          {habits.map(habit => (
-            <div key={habit.id} className="mb-2 border p-2 rounded bg-gray-50">
-              <div className="font-bold">{habit.name}</div>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {habit.achievements.length === 0 ? (
-                  <span className="text-gray-500 italic">No achievements yet</span>
-                ) : (
-                  habit.achievements.map(aid => {
-                    const ach = achievements.find(a => a.id === aid);
-                    return (
-                      <span
-                        key={aid}
-                        className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-semibold"
-                        title={ach ? ach.name : aid}
-                      >
-                        {ach ? ach.name : aid}
-                      </span>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Filter buttons */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {['All', ...categories].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(selectedCategory === cat ? 'All' : cat)}
-              className={`px-3 py-1 rounded-full border ${
-                selectedCategory === cat ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'
-              } focus:outline-none`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Calendar mode toggle */}
-        <div className="mb-4">
-          <button
-            onClick={toggleCalendarMode}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-          >
-            Toggle to {calendarMode === '90day' ? 'Weekly' : calendarMode === 'weekly' ? 'Monthly' : '90-day'} View
-          </button>
-        </div>
-
-        {/* Display current habits */}
-        <div style={{ marginTop: '20px', textAlign: 'left' }}>
-          <h3>Current Habits:</h3>
-          {filteredHabits.length === 0 ? (
-            <p>No habits in this category</p>
-          ) : (
-            <>
-              {calendarMode === 'weekly' ? (
-                <div>
-                  <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2">
-                    {currentWeekDays.map(day => (
-                      <div key={day ? day.toISOString() : 'empty-' + Math.random()}>{day ? format(day, 'EEE') : ''}</div>
-                    ))}
-                  </div>
-                  {filteredHabits.map(habit => (
-                    <div key={habit.id} className="mb-4">
-                      <div className="font-bold">{habit.name}</div>
-                      <div className="grid grid-cols-7 gap-2 text-center">
-                        {currentWeekDays.map(day => {
-                          if (!day) return <div key={'empty-' + Math.random()} className="h-8 w-8 rounded bg-gray-100 pointer-events-none" />;
-                          const done = isCompletedOn(habit, day);
-                          const today = isToday(day);
-                          return (
-                            <div
-                              key={day.toISOString()}
-                              className={`h-8 w-8 rounded ${
-                                done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
-                              }`}
-                              title={format(day, 'yyyy-MM-dd')}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : calendarMode === 'monthly' ? (
-                <div>
-                  <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                      <div key={day}>{day}</div>
-                    ))}
-                  </div>
-                  {filteredHabits.map(habit => (
-                    <div key={habit.id} className="mb-4">
-                      <div className="font-bold">{habit.name}</div>
-                      <div className="grid grid-cols-7 gap-2 text-center">
-                        {currentWeekDays.map((day, idx) => {
-                          if (day === null) {
-                            return <div key={idx} className="h-6 w-6 rounded bg-gray-100 pointer-events-none" />;
-                          }
-                          const done = isCompletedOn(habit, day);
-                          const today = isToday(day);
-                          return (
-                            <div
-                              key={idx}
-                              className={`h-6 w-6 rounded ${
-                                done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
-                              }`}
-                              title={format(day, 'yyyy-MM-dd')}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <ul>
-                  {filteredHabits.map((habit) => (
-                    <li key={habit.id}>
-                      {habit.name} - Category: {habit.category}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-        </div>
-
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+    <div className="app-container">
+      <header className="app-header">
+        <h1>Habit Tracker</h1>
       </header>
+
+      <div className="form-container">
+        <div className="input-group">
+          <input
+            type="text"
+            placeholder="Enter a new habit..."
+            value={newHabit.name}
+            onChange={(e) => setNewHabit({ ...newHabit, name: e.target.value })}
+          />
+          <input
+            type="text"
+            placeholder="Category"
+            value={newHabit.category}
+            onChange={(e) => setNewHabit({ ...newHabit, category: e.target.value })}
+          />
+        </div>
+        <div className="actions-container">
+          <button onClick={addHabit} className="btn-primary">Add Habit</button>
+          <div className="export-buttons">
+            <button onClick={exportJSON} className="btn-secondary">Export JSON</button>
+            <button onClick={exportCSV} className="btn-secondary">Export CSV</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="habits-list-container">
+        <h3>Current Habits</h3>
+        <ul>
+          {habits.map((habit) => (
+            <li key={habit.id} className="habit-item">
+              <span className="habit-item-name">{habit.name}</span>
+              <span className="habit-item-category">{habit.category}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
