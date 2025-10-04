@@ -1,5 +1,25 @@
 import './App.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import eachDayOfInterval from 'date-fns/eachDayOfInterval';
+import startOfWeek from 'date-fns/startOfWeek';
+import endOfWeek from 'date-fns/endOfWeek';
+import startOfMonth from 'date-fns/startOfMonth';
+import endOfMonth from 'date-fns/endOfMonth';
+import format from 'date-fns/format';
+import isToday from 'date-fns/isToday';
+
+export const achievements = [
+  { id: 'streak7', name: 'Novice Coder', condition: 'streak >= 7', icon: 'Award' },
+  { id: 'streak30', name: 'Intermediate Coder', condition: 'streak >= 30', icon: 'Award' },
+  { id: 'streak100', name: 'Expert Coder', condition: 'streak >= 100', icon: 'Award' },
+  { id: 'firstHabit', name: 'Getting Started', condition: 'first habit added', icon: 'Star' },
+  { id: 'fiveHabits', name: 'Habit Collector', condition: '5 habits added', icon: 'Star' },
+  { id: 'categoryMaster', name: 'Category Master', condition: 'habits in all categories', icon: 'Medal' },
+  { id: 'dailyCommit', name: 'Daily Committer', condition: 'commit every day for a week', icon: 'Award' },
+  { id: 'weeklyWarrior', name: 'Weekly Warrior', condition: 'commit every day for a month', icon: 'Award' },
+  { id: 'monthlyMarathon', name: 'Monthly Marathon', condition: 'commit every day for 3 months', icon: 'Award' },
+  { id: 'reviewer', name: 'Code Reviewer', condition: 'review habit added', icon: 'Medal' },
+];
 
 // Updated initial habits to include a 'completions' array for the CSV export requirement
 const initialHabits = [
@@ -25,6 +45,44 @@ const downloadFile = ({ data, fileName, fileType }) => {
 function App() {
   const [habits, setHabits] = useState(initialHabits);
   const [newHabit, setNewHabit] = useState({ name: '', category: 'General' });
+  const categories = ['Coding', 'Learning', 'Project', 'Review', 'General'];
+
+  console.log('Achievements:', achievements);
+
+  // Calculate streak for a habit
+  const calculateStreak = (habit) => {
+    if (!habit.completions.length) return 0;
+    const sortedDates = habit.completions
+      .map(d => new Date(d))
+      .sort((a, b) => b - a);
+    let streak = 1;
+    for (let i = 1; i < sortedDates.length; i++) {
+      const diff = (sortedDates[i - 1] - sortedDates[i]) / (1000 * 60 * 60 * 24);
+      if (diff === 1) streak++;
+      else break;
+    }
+    return streak;
+  };
+
+  // Check and award achievements for a habit
+  const checkAndAwardAchievements = (habit) => {
+    const streak = calculateStreak(habit);
+    let newAchievements = [...habit.achievements];
+    if (streak >= 7 && !newAchievements.includes('streak7')) {
+      newAchievements.push('streak7');
+      console.log(`Achievement unlocked for habit ${habit.name}: Novice Coder`);
+    }
+    if (streak >= 30 && !newAchievements.includes('streak30')) {
+      newAchievements.push('streak30');
+      console.log(`Achievement unlocked for habit ${habit.name}: Intermediate Coder`);
+    }
+    if (streak >= 100 && !newAchievements.includes('streak100')) {
+      newAchievements.push('streak100');
+      console.log(`Achievement unlocked for habit ${habit.name}: Expert Coder`);
+    }
+    // Add other achievement checks as needed
+    return newAchievements;
+  };
 
   const addHabit = () => {
     if (newHabit.name.trim() === '' || newHabit.category.trim() === '') {
@@ -58,6 +116,79 @@ function App() {
       fileName: 'habits.csv',
       fileType: 'text/csv',
     });
+  };
+
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [calendarMode, setCalendarMode] = useState('90day'); // '90day' | 'weekly' | 'monthly'
+
+  const filteredHabits = selectedCategory === 'All'
+    ? habits
+    : habits.filter(habit => habit.category === selectedCategory);
+
+  // Calculate current week days
+  const [currentWeekDays, setCurrentWeekDays] = useState([]);
+
+  useEffect(() => {
+    if (calendarMode === 'weekly') {
+      const start = startOfWeek(new Date(), { weekStartsOn: 0 }); // Sunday
+      const end = endOfWeek(new Date(), { weekStartsOn: 0 });
+      setCurrentWeekDays(eachDayOfInterval({ start, end }));
+    } else if (calendarMode === 'monthly') {
+      const start = startOfMonth(new Date());
+      const end = endOfMonth(new Date());
+      const daysInMonth = eachDayOfInterval({ start, end });
+
+      // Pad days to start on Sunday and end on Saturday
+      const startPadding = start.getDay(); // 0 (Sun) to 6 (Sat)
+      const endPadding = 6 - end.getDay();
+
+      const paddedDays = [
+        ...Array(startPadding).fill(null),
+        ...daysInMonth,
+        ...Array(endPadding).fill(null),
+      ];
+
+      setCurrentWeekDays(paddedDays);
+    }
+  }, [calendarMode]);
+
+  // Toggle calendar mode handler
+  const toggleCalendarMode = () => {
+    setCalendarMode(prev => {
+      if (prev === '90day') return 'weekly';
+      if (prev === 'weekly') return 'monthly';
+      return '90day';
+    });
+  };
+
+  // Check if habit is completed on a given day
+  const isCompletedOn = (habit, day) => {
+    return habit.completions.some(date => format(date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'));
+  };
+
+  // Toggle completion for a habit on a day
+  const toggleCompletion = (habitId, day) => {
+    setHabits(prevHabits => {
+      return prevHabits.map(habit => {
+        if (habit.id !== habitId) return habit;
+        const dayStr = format(day, 'yyyy-MM-dd');
+        const hasCompleted = habit.completions.some(d => format(d, 'yyyy-MM-dd') === dayStr);
+        let newCompletions;
+        if (hasCompleted) {
+          newCompletions = habit.completions.filter(d => format(d, 'yyyy-MM-dd') !== dayStr);
+        } else {
+          newCompletions = [...habit.completions, day];
+        }
+        const updatedHabit = { ...habit, completions: newCompletions };
+        updatedHabit.achievements = checkAndAwardAchievements(updatedHabit);
+        return updatedHabit;
+      });
+    });
+  };
+
+  // UI handler to toggle completion on click
+  const handleCompletionClick = (habitId, day) => {
+    toggleCompletion(habitId, day);
   };
 
   return (
