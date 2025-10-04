@@ -8,6 +8,11 @@ import startOfMonth from 'date-fns/startOfMonth';
 import endOfMonth from 'date-fns/endOfMonth';
 import format from 'date-fns/format';
 import isToday from 'date-fns/isToday';
+import subWeeks from 'date-fns/subWeeks';
+import addWeeks from 'date-fns/addWeeks';
+import subMonths from 'date-fns/subMonths';
+import addMonths from 'date-fns/addMonths';
+import { useSwipeable } from 'react-swipeable';
 import { Award, Star, Medal } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -95,6 +100,7 @@ function App() {
   const [newlyUnlocked, setNewlyUnlocked] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedHabit, setSelectedHabit] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const filteredHabits = selectedCategory === 'All'
     ? habits
@@ -105,12 +111,12 @@ function App() {
 
   useEffect(() => {
     if (calendarMode === 'weekly') {
-      const start = startOfWeek(new Date(), { weekStartsOn: 0 }); // Sunday
-      const end = endOfWeek(new Date(), { weekStartsOn: 0 });
+      const start = startOfWeek(currentDate, { weekStartsOn: 0 }); // Sunday
+      const end = endOfWeek(currentDate, { weekStartsOn: 0 });
       setCurrentWeekDays(eachDayOfInterval({ start, end }));
     } else if (calendarMode === 'monthly') {
-      const start = startOfMonth(new Date());
-      const end = endOfMonth(new Date());
+      const start = startOfMonth(currentDate);
+      const end = endOfMonth(currentDate);
       const daysInMonth = eachDayOfInterval({ start, end });
 
       // Pad days to start on Sunday and end on Saturday
@@ -125,7 +131,7 @@ function App() {
 
       setCurrentWeekDays(paddedDays);
     }
-  }, [calendarMode]);
+  }, [calendarMode, currentDate]);
 
   // Toggle calendar mode handler
   const toggleCalendarMode = () => {
@@ -135,6 +141,11 @@ function App() {
       return '90day';
     });
   };
+
+  const goToPrevWeek = () => setCurrentDate(prev => subWeeks(prev, 1));
+  const goToNextWeek = () => setCurrentDate(prev => addWeeks(prev, 1));
+  const goToPrevMonth = () => setCurrentDate(prev => subMonths(prev, 1));
+  const goToNextMonth = () => setCurrentDate(prev => addMonths(prev, 1));
 
   // Check if habit is completed on a given day
   const isCompletedOn = (habit, day) => {
@@ -167,6 +178,16 @@ function App() {
   const handleCompletionClick = (habitId, day) => {
     toggleCompletion(habitId, day);
   };
+
+  const weeklySwipeHandlers = useSwipeable({
+    onSwipedLeft: goToNextWeek,
+    onSwipedRight: goToPrevWeek,
+  });
+
+  const monthlySwipeHandlers = useSwipeable({
+    onSwipedLeft: goToNextMonth,
+    onSwipedRight: goToPrevMonth,
+  });
 
   return (
     <div className="App">
@@ -246,6 +267,13 @@ function App() {
           </button>
         </div>
 
+        {calendarMode !== '90day' && (
+          <div className="mb-4 flex gap-2">
+            <button onClick={calendarMode === 'weekly' ? goToPrevWeek : goToPrevMonth} className="px-4 py-2 bg-gray-600 text-white rounded">Prev</button>
+            <button onClick={calendarMode === 'weekly' ? goToNextWeek : goToNextMonth} className="px-4 py-2 bg-gray-600 text-white rounded">Next</button>
+          </div>
+        )}
+
         {/* Display current habits */}
         <div style={{ marginTop: '20px', textAlign: 'left' }}>
           <h3>Current Habits:</h3>
@@ -254,37 +282,37 @@ function App() {
           ) : (
             <>
               {calendarMode === 'weekly' ? (
-                <div className="overflow-x-auto">
-                  <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2 min-w-max">
-                    {currentWeekDays.map(day => (
-                      <div key={day ? day.toISOString() : 'empty-' + Math.random()}>{day ? format(day, 'EEE') : ''}</div>
+                <div className="overflow-x-auto" {...weeklySwipeHandlers}>
+                    <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2 min-w-max">
+                      {currentWeekDays.map(day => (
+                        <div key={day ? day.toISOString() : 'empty-' + Math.random()}>{day ? format(day, 'EEE') : ''}</div>
+                      ))}
+                    </div>
+                    {filteredHabits.map(habit => (
+                      <div key={habit.id} className="mb-4">
+                        <div className="font-bold">{habit.name}</div>
+                        <div className="grid grid-cols-7 gap-2 text-center min-w-max">
+                          {currentWeekDays.map(day => {
+                            if (!day) return <div key={'empty-' + Math.random()} className="min-h-11 min-w-11 rounded bg-gray-100 pointer-events-none p-1" />;
+                            const done = isCompletedOn(habit, day);
+                            const today = isToday(day);
+                            return (
+                              <div
+                                key={day.toISOString()}
+                                className={`min-h-11 min-w-11 rounded cursor-pointer p-1 ${
+                                  done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
+                                }`}
+                                title={format(day, 'yyyy-MM-dd')}
+                                onClick={() => handleCompletionClick(habit.id, day)}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
                     ))}
                   </div>
-                  {filteredHabits.map(habit => (
-                    <div key={habit.id} className="mb-4">
-                      <div className="font-bold">{habit.name}</div>
-                      <div className="grid grid-cols-7 gap-2 text-center min-w-max">
-                        {currentWeekDays.map(day => {
-                          if (!day) return <div key={'empty-' + Math.random()} className="h-8 w-8 rounded bg-gray-100 pointer-events-none" />;
-                          const done = isCompletedOn(habit, day);
-                          const today = isToday(day);
-                          return (
-                            <div
-                              key={day.toISOString()}
-                              className={`h-8 w-8 rounded cursor-pointer ${
-                                done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
-                              }`}
-                              title={format(day, 'yyyy-MM-dd')}
-                              onClick={() => handleCompletionClick(habit.id, day)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
               ) : calendarMode === 'monthly' ? (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" {...monthlySwipeHandlers}>
                   <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2 min-w-max">
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                       <div key={day}>{day}</div>
@@ -296,14 +324,14 @@ function App() {
                       <div className="grid grid-cols-7 gap-2 text-center min-w-max">
                         {currentWeekDays.map((day, idx) => {
                           if (day === null) {
-                            return <div key={idx} className="h-6 w-6 rounded bg-gray-100 pointer-events-none" />;
+                            return <div key={idx} className="min-h-11 min-w-11 rounded bg-gray-100 pointer-events-none p-1" />;
                           }
                           const done = isCompletedOn(habit, day);
                           const today = isToday(day);
                           return (
                             <div
                               key={idx}
-                              className={`h-6 w-6 rounded cursor-pointer ${
+                              className={`min-h-11 min-w-11 rounded cursor-pointer p-1 ${
                                 done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
                               }`}
                               title={format(day, 'yyyy-MM-dd')}
@@ -316,7 +344,7 @@ function App() {
                   ))}
                 </div>
               ) : (
-                <div className="habit-list">
+                <div className="habit-list overflow-y-auto">
                   {filteredHabits.map((habit) => (
                     <div key={habit.id} className="habit-card p-3 sm:p-4 border rounded mb-4 w-full">
                       <div className="font-bold text-sm sm:text-base">{habit.name} - {habit.category}</div>
