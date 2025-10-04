@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import eachDayOfInterval from 'date-fns/eachDayOfInterval';
 import startOfWeek from 'date-fns/startOfWeek';
 import endOfWeek from 'date-fns/endOfWeek';
+import startOfMonth from 'date-fns/startOfMonth';
+import endOfMonth from 'date-fns/endOfMonth';
 import format from 'date-fns/format';
 import isToday from 'date-fns/isToday';
 
@@ -43,12 +45,32 @@ function App() {
       const start = startOfWeek(new Date(), { weekStartsOn: 0 }); // Sunday
       const end = endOfWeek(new Date(), { weekStartsOn: 0 });
       setCurrentWeekDays(eachDayOfInterval({ start, end }));
+    } else if (calendarMode === 'monthly') {
+      const start = startOfMonth(new Date());
+      const end = endOfMonth(new Date());
+      const daysInMonth = eachDayOfInterval({ start, end });
+
+      // Pad days to start on Sunday and end on Saturday
+      const startPadding = start.getDay(); // 0 (Sun) to 6 (Sat)
+      const endPadding = 6 - end.getDay();
+
+      const paddedDays = [
+        ...Array(startPadding).fill(null),
+        ...daysInMonth,
+        ...Array(endPadding).fill(null),
+      ];
+
+      setCurrentWeekDays(paddedDays);
     }
   }, [calendarMode]);
 
   // Toggle calendar mode handler
   const toggleCalendarMode = () => {
-    setCalendarMode(prev => (prev === '90day' ? 'weekly' : '90day'));
+    setCalendarMode(prev => {
+      if (prev === '90day') return 'weekly';
+      if (prev === 'weekly') return 'monthly';
+      return '90day';
+    });
   };
 
   // Check if habit is completed on a given day
@@ -102,7 +124,7 @@ function App() {
             onClick={toggleCalendarMode}
             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
           >
-            Toggle to {calendarMode === '90day' ? 'Weekly' : '90-day'} View
+            Toggle to {calendarMode === '90day' ? 'Weekly' : calendarMode === 'weekly' ? 'Monthly' : '90-day'} View
           </button>
         </div>
 
@@ -117,7 +139,7 @@ function App() {
                 <div>
                   <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2">
                     {currentWeekDays.map(day => (
-                      <div key={day.toISOString()}>{format(day, 'EEE')}</div>
+                      <div key={day ? day.toISOString() : 'empty-' + Math.random()}>{day ? format(day, 'EEE') : ''}</div>
                     ))}
                   </div>
                   {filteredHabits.map(habit => (
@@ -125,12 +147,44 @@ function App() {
                       <div className="font-bold">{habit.name}</div>
                       <div className="grid grid-cols-7 gap-2 text-center">
                         {currentWeekDays.map(day => {
+                          if (!day) return <div key={'empty-' + Math.random()} className="h-8 w-8 rounded bg-gray-100 pointer-events-none" />;
                           const done = isCompletedOn(habit, day);
                           const today = isToday(day);
                           return (
                             <div
                               key={day.toISOString()}
                               className={`h-8 w-8 rounded ${
+                                done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
+                              }`}
+                              title={format(day, 'yyyy-MM-dd')}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : calendarMode === 'monthly' ? (
+                <div>
+                  <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                      <div key={day}>{day}</div>
+                    ))}
+                  </div>
+                  {filteredHabits.map(habit => (
+                    <div key={habit.id} className="mb-4">
+                      <div className="font-bold">{habit.name}</div>
+                      <div className="grid grid-cols-7 gap-2 text-center">
+                        {currentWeekDays.map((day, idx) => {
+                          if (day === null) {
+                            return <div key={idx} className="h-6 w-6 rounded bg-gray-100 pointer-events-none" />;
+                          }
+                          const done = isCompletedOn(habit, day);
+                          const today = isToday(day);
+                          return (
+                            <div
+                              key={idx}
+                              className={`h-6 w-6 rounded ${
                                 done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
                               }`}
                               title={format(day, 'yyyy-MM-dd')}
