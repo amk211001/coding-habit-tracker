@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import { useState } from 'react';
 
@@ -10,6 +9,7 @@ const initialHabits = [
 function App() {
   const [habits, setHabits] = useState(initialHabits);
   const [newHabit, setNewHabit] = useState({ name: '', category: 'General' });
+  const [accessibility, setAccessibility] = useState({ largeText: false, highContrast: false });
   const categories = ['Coding', 'Learning', 'Project', 'Review', 'General'];
 
   const addHabit = () => {
@@ -23,14 +23,31 @@ function App() {
     console.log('Habits:', habits);
   };
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        {/* <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p> */}
+  const toggleLargeText = () => {
+  setAccessibility(prev => ({ ...prev, largeText: !prev.largeText }));
+  };
 
+  const toggleHighContrast = () => {
+    setAccessibility(prev => ({ ...prev, highContrast: !prev.highContrast }));
+  };
+
+  const appClasses = [
+    "App",
+    accessibility.largeText ? "large-text" : "",
+    accessibility.highContrast ? "high-contrast" : ""
+  ].join(" ").trim();
+
+  return (
+    <div className={appClasses}>
+      <header className="App-header">
+        {" "}
+        <div style={{ position: "absolute", top: 10, right: 10 }}>
+           <button onClick={toggleLargeText}>Toggle Large Text</button>{" "}
+          <button onClick={toggleHighContrast} style={{ marginLeft: "10px" }}>
+            Toggle High Contrast
+          </button>
+          {" "}
+        </div>
         {/* Input for new habit name */}
         <input
           type="text"
