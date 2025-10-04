@@ -289,3 +289,24 @@ input[type="text"]:focus, select:focus {
     transform: rotate(360deg);
   }
 }
+
+.App.large-text .App-header {
+  font-size: calc(12px + 2.4vmin);
+}
+
+.App.high-contrast .App-header {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.App.high-contrast .App-link {
+  color: #ffff00; /* Bright yellow for high contrast */
+}
+
+.App.high-contrast input,
+.App.high-contrast select,
+.App.high-contrast button {
+  background-color: #222;
+  color: #fff;
+  border: 2px solid #fff;
+}
