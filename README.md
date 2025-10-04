@@ -1,3 +1,47 @@
+# 🚀 Coding Habit Tracker
+
+Welcome to **Coding Habit Tracker**!  
+This repository is open for contributions under **Hacktoberfest 2025** 🎉.  
+If you’re looking to make your first pull request, you’re in the right place.
+
+---
+
+## 📌 About the Project
+Briefly describe your project here:  
+- What problem it solves  
+- Technologies used  
+- Current status  
+
+---
+
+## 🛠️ Tech Stack
+- Language/Framework: (e.g., Java, Spring Boot, Angular, Generative AI, etc.)
+- Database: (e.g., MySQL, MongoDB, Firestore)  
+- Cloud: (e.g., AWS, Firebase, Vercel)  
+
+---
+
+## 🤝 Contributing
+We welcome contributions from everyone!  
+Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute.  
+
+For Hacktoberfest:
+- Look for issues labeled `hacktoberfest`, `good first issue`, or `help wanted`.
+- Create a new branch for your work.
+- Open a pull request (PR) once ready.  
+
+---
+
+## 📜 License
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 🙌 Acknowledgements
+- Thanks to all contributors and Hacktoberfest participants.
+- Special thanks to the open-source community 💙.
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
