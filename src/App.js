@@ -56,15 +56,15 @@ function App() {
     }
   }, [calendarMode]);
 
-  // Toggle calendar mode handler
-  const toggleCalendarMode = () => {
-    setCalendarMode(prev => (prev === '90day' ? 'weekly' : '90day'));
-  };
+  const handleViewAchievements = useCallback((habit) => {
+    setSelectedHabit(habit);
+    setModalOpen(true);
+  }, []);
 
-  // Check if habit is completed on a given day
-  const isCompletedOn = (habit, day) => {
-    return habit.completions.some(date => format(date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'));
-  };
+  const handleCloseModal = useCallback(() => {
+    setModalOpen(false);
+    setSelectedHabit(null);
+  }, []);
 
   return (
     <div className={appClasses}>
@@ -114,61 +114,45 @@ function App() {
           ))}
         </div>
 
-        {/* Calendar mode toggle */}
-        <div className="mb-4">
-          <button
-            onClick={toggleCalendarMode}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-          >
-            Toggle to {calendarMode === '90day' ? 'Weekly' : '90-day'} View
-          </button>
-        </div>
+        <CategoryFilter selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
+
+        <CalendarToggle calendarMode={calendarMode} onToggle={toggleCalendarMode} />
+
+        {calendarMode !== '90day' && (
+          <div className="mb-4 flex gap-2">
+            <button onClick={() => setCurrentDate(prev => calendarMode === 'weekly' ? subWeeks(prev, 1) : subMonths(prev, 1))} className="px-4 py-2 bg-gray-600 text-white rounded">Prev</button>
+            <button onClick={() => setCurrentDate(prev => calendarMode === 'weekly' ? addWeeks(prev, 1) : addMonths(prev, 1))} className="px-4 py-2 bg-gray-600 text-white rounded">Next</button>
+          </div>
+        )}
 
         {/* Display current habits */}
         <div style={{ marginTop: '20px', textAlign: 'left' }}>
           <h3>Current Habits:</h3>
           {filteredHabits.length === 0 ? (
             <p>No habits in this category</p>
+          ) : calendarMode === '90day' ? (
+            <div className="habit-list overflow-y-auto">
+              {filteredHabits.map((habit) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  calculateStreak={calculateStreak}
+                  averageCompletion={averageCompletion}
+                  onViewAchievements={handleViewAchievements}
+                  onDelete={deleteHabit}
+                  newlyUnlocked={newlyUnlocked}
+                />
+              ))}
+            </div>
           ) : (
-            <>
-              {calendarMode === 'weekly' ? (
-                <div>
-                  <div className="grid grid-cols-7 gap-2 text-center font-semibold mb-2">
-                    {currentWeekDays.map(day => (
-                      <div key={day.toISOString()}>{format(day, 'EEE')}</div>
-                    ))}
-                  </div>
-                  {filteredHabits.map(habit => (
-                    <div key={habit.id} className="mb-4">
-                      <div className="font-bold">{habit.name}</div>
-                      <div className="grid grid-cols-7 gap-2 text-center">
-                        {currentWeekDays.map(day => {
-                          const done = isCompletedOn(habit, day);
-                          const today = isToday(day);
-                          return (
-                            <div
-                              key={day.toISOString()}
-                              className={`h-8 w-8 rounded ${
-                                done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
-                              }`}
-                              title={format(day, 'yyyy-MM-dd')}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <ul>
-                  {filteredHabits.map((habit) => (
-                    <li key={habit.id}>
-                      {habit.name} - Category: {habit.category}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
+            <HabitGrid
+              habits={filteredHabits}
+              calendarMode={calendarMode}
+              currentDate={currentDate}
+              onDateChange={setCurrentDate}
+              onToggleCompletion={handleToggleCompletion}
+              isCompletedOn={isCompletedOn}
+            />
           )}
         </div>
 
@@ -181,6 +165,8 @@ function App() {
           Learn React
         </a>
       </header>
+
+      <AchievementModal habit={selectedHabit} onClose={handleCloseModal} />
     </div>
   );
 }

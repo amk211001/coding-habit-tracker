@@ -1,5 +1,9 @@
 .App {
   text-align: center;
+  background-color: #121212;
+  min-height: 100vh;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .App-logo {
@@ -14,18 +18,267 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #1f1f1f;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  justify-content: flex-start;
+  padding: 2rem;
+  font-size: calc(12px + 1.5vmin);
+  color: #f0f0f0;
+  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+  border-radius: 8px;
+  max-width: 900px;
+  margin: 1rem auto;
 }
 
 .App-link {
   color: #61dafb;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.App-link:hover {
+  color: #21a1f1;
+  text-decoration: underline;
+}
+
+.habit-card {
+  background: #2a2a2a;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+  color: #e0e0e0;
+}
+
+.habit-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.7);
+  color: #61dafb;
+}
+
+.habit-card .font-bold {
+  transition: color 0.3s ease;
+}
+
+.habit-card:hover .font-bold {
+  color: #21a1f1;
+}
+
+.habit-card .text-sm {
+  color: #c0c0c0;
+  transition: color 0.3s ease;
+}
+
+.habit-card:hover .text-sm {
+  color: #a0d8ff;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.5rem 1rem;
+}
+
+button:hover {
+  filter: brightness(1.1);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(59,130,246,0.7);
+}
+
+button:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 4px rgba(59,130,246,0.9);
+}
+
+.toggle-button {
+  background-color: #10b981;
+  box-shadow: 0 2px 6px rgba(16,185,129,0.5);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.toggle-button:hover {
+  background-color: #059669;
+  box-shadow: 0 4px 12px rgba(5,150,105,0.7);
+  transform: scale(1.05);
+}
+
+.toggle-button:active {
+  background-color: #047857;
+  box-shadow: 0 1px 4px rgba(4,120,87,0.9);
+  transform: scale(0.95);
+}
+
+input[type="text"], select {
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  color: #ddd;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus, select:focus {
+  border-color: #61dafb;
+  outline: none;
+  box-shadow: 0 0 8px #61dafb;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  user-select: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.badge:hover {
+  background-color: #3b82f6;
+  color: white;
+  cursor: pointer;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  filter: brightness(1.1);
+}
+
+input[type="text"], select {
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  color: #ddd;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus, select:focus {
+  border-color: #61dafb;
+  outline: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  user-select: none;
+}
+
+.bg-yellow-500 {
+  background-color: #facc15;
+}
+
+.bg-blue-500 {
+  background-color: #3b82f6;
+}
+
+.bg-green-500 {
+  background-color: #22c55e;
+}
+
+.text-white {
+  color: white;
+}
+
+.text-green-800 {
+  color: #166534;
+}
+
+.text-gray-500 {
+  color: #6b7280;
+}
+
+.text-gray-400 {
+  color: #9ca3af;
+}
+
+.text-indigo-500 {
+  color: #6366f1;
+}
+
+.text-gray-700 {
+  color: #374151;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.min-h-11 {
+  min-height: 2.75rem;
+}
+
+.min-w-11 {
+  min-width: 2.75rem;
+}
+
+.bg-gray-100 {
+  background-color: #f3f4f6;
+}
+
+.bg-gray-200 {
+  background-color: #e5e7eb;
+}
+
+.bg-gray-500 {
+  background-color: #6b7280;
+}
+
+.bg-red-500 {
+  background-color: #ef4444;
+}
+
+.bg-red-600 {
+  background-color: #dc2626;
+}
+
+.focus\:outline-none:focus {
+  outline: none;
+}
+
+.focus\:ring-2:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.focus\:ring-red-400:focus {
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.5);
 }
 
 @keyframes App-logo-spin {
