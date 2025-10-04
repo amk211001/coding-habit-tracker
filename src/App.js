@@ -8,6 +8,8 @@ import startOfMonth from 'date-fns/startOfMonth';
 import endOfMonth from 'date-fns/endOfMonth';
 import format from 'date-fns/format';
 import isToday from 'date-fns/isToday';
+import { Award, Star, Medal } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const achievements = [
   { id: 'streak7', name: 'Novice Coder', condition: 'streak >= 7', icon: 'Award' },
@@ -23,7 +25,7 @@ export const achievements = [
 ];
 
 const initialHabits = [
-  { id: 1, name: 'Code daily', category: 'General', completions: [new Date()], achievements: [] },
+  { id: 1, name: 'Code daily', category: 'General', completions: Array.from({length: 7}, (_, i) => new Date(Date.now() - i * 24 * 60 * 60 * 1000)), achievements: ['streak7'] },
   { id: 2, name: 'Read tech articles', category: 'General', completions: [], achievements: [] },
 ];
 
@@ -53,20 +55,24 @@ function App() {
   const checkAndAwardAchievements = (habit) => {
     const streak = calculateStreak(habit);
     let newAchievements = [...habit.achievements];
+    let newUnlocked = [];
     if (streak >= 7 && !newAchievements.includes('streak7')) {
       newAchievements.push('streak7');
+      newUnlocked.push('streak7');
       console.log(`Achievement unlocked for habit ${habit.name}: Novice Coder`);
     }
     if (streak >= 30 && !newAchievements.includes('streak30')) {
       newAchievements.push('streak30');
+      newUnlocked.push('streak30');
       console.log(`Achievement unlocked for habit ${habit.name}: Intermediate Coder`);
     }
     if (streak >= 100 && !newAchievements.includes('streak100')) {
       newAchievements.push('streak100');
+      newUnlocked.push('streak100');
       console.log(`Achievement unlocked for habit ${habit.name}: Expert Coder`);
     }
     // Add other achievement checks as needed
-    return newAchievements;
+    return { achievements: newAchievements, newUnlocked };
   };
 
   const addHabit = () => {
@@ -82,6 +88,9 @@ function App() {
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [calendarMode, setCalendarMode] = useState('90day'); // '90day' | 'weekly' | 'monthly'
+  const [newlyUnlocked, setNewlyUnlocked] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedHabit, setSelectedHabit] = useState(null);
 
   const filteredHabits = selectedCategory === 'All'
     ? habits
@@ -142,7 +151,9 @@ function App() {
           newCompletions = [...habit.completions, day];
         }
         const updatedHabit = { ...habit, completions: newCompletions };
-        updatedHabit.achievements = checkAndAwardAchievements(updatedHabit);
+        const { achievements: newAchievements, newUnlocked } = checkAndAwardAchievements(updatedHabit);
+        updatedHabit.achievements = newAchievements;
+        if (newUnlocked.length > 0) setNewlyUnlocked(prev => [...prev, ...newUnlocked]);
         return updatedHabit;
       });
     });
@@ -256,10 +267,11 @@ function App() {
                           return (
                             <div
                               key={day.toISOString()}
-                              className={`h-8 w-8 rounded ${
+                              className={`h-8 w-8 rounded cursor-pointer ${
                                 done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
                               }`}
                               title={format(day, 'yyyy-MM-dd')}
+                              onClick={() => handleCompletionClick(habit.id, day)}
                             />
                           );
                         })}
@@ -287,10 +299,11 @@ function App() {
                           return (
                             <div
                               key={idx}
-                              className={`h-6 w-6 rounded ${
+                              className={`h-6 w-6 rounded cursor-pointer ${
                                 done ? 'bg-green-500' : today ? 'bg-blue-500' : 'bg-gray-200'
                               }`}
                               title={format(day, 'yyyy-MM-dd')}
+                              onClick={() => handleCompletionClick(habit.id, day)}
                             />
                           );
                         })}
@@ -299,13 +312,34 @@ function App() {
                   ))}
                 </div>
               ) : (
-                <ul>
+                <div className="habit-list">
                   {filteredHabits.map((habit) => (
-                    <li key={habit.id}>
-                      {habit.name} - Category: {habit.category}
-                    </li>
+                    <div key={habit.id} className="habit-card p-4 border rounded mb-4">
+                      <div className="font-bold">{habit.name} - {habit.category}</div>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {habit.achievements.slice(0,3).map(aid => {
+                          const ach = achievements.find(a => a.id === aid);
+                          const Icon = ach.icon === 'Award' ? Award : ach.icon === 'Star' ? Star : Medal;
+                          const bgColor = ach.icon === 'Award' ? 'bg-yellow-500' : ach.icon === 'Star' ? 'bg-blue-500' : 'bg-green-500';
+                          const isNew = newlyUnlocked.includes(aid);
+                          return (
+                            <motion.div
+                              key={aid}
+                              initial={isNew ? { scale: 0 } : { scale: 1 }}
+                              animate={{ scale: 1 }}
+                              transition={{ duration: 0.5 }}
+                              className={`badge ${bgColor} text-white inline-flex items-center gap-1 px-2 py-1 rounded cursor-pointer`}
+                              title={`${ach.name} - ${ach.condition}`}
+                            >
+                              <Icon size={16} />
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                      <button onClick={() => { setSelectedHabit(habit); setModalOpen(true); }} className="mt-2 px-2 py-1 bg-gray-500 text-white rounded">View All Achievements</button>
+                    </div>
                   ))}
-                </ul>
+                </div>
               )}
             </>
           )}
@@ -320,6 +354,35 @@ function App() {
           Learn React
         </a>
       </header>
+
+      {modalOpen && selectedHabit && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div className="bg-white p-4 rounded max-w-md w-full shadow-lg">
+            <h3 id="modal-title" className="text-lg font-bold mb-4">Achievements for {selectedHabit.name}</h3>
+            <ul className="space-y-2 max-h-96 overflow-y-auto">
+              {achievements.map(ach => {
+                const unlocked = selectedHabit.achievements.includes(ach.id);
+                const Icon = ach.icon === 'Award' ? Award : ach.icon === 'Star' ? Star : Medal;
+                return (
+                  <li key={ach.id} className="flex items-center gap-2">
+                    {unlocked ? <span className="text-green-500">✅</span> : <span className="text-gray-400">❌</span>}
+                    <Icon size={16} />
+                    <span className={unlocked ? 'font-semibold' : ''}>{ach.name} - {ach.condition}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            <button onClick={() => setModalOpen(false)} className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
