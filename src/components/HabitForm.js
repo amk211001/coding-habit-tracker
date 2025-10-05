@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { categories } from '../constants';
 
 function HabitForm({ onAddHabit }) {
@@ -41,5 +42,10 @@ function HabitForm({ onAddHabit }) {
     </form>
   );
 }
+
+
+HabitForm.propTypes = {
+  onAddHabit: PropTypes.func.isRequired,
+};
 
 export default HabitForm;
