@@ -14,6 +14,7 @@ import AchievementModal from './components/AchievementModal';
 function App() {
   const {
     habits,
+    setHabits,
     calculateStreak,
     averageCompletion,
     isCompletedOn,
@@ -56,10 +57,83 @@ function App() {
     setSelectedHabit(null);
   }, []);
 
+  const handleExport = () => {
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
+      JSON.stringify(habits, null, 2)
+    )}`;
+    const link = document.createElement("a");
+    link.href = jsonString;
+    link.download = "habits.json";
+    link.click();
+  };
+
+  const handleFileImport = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const fileContent = e.target.result;
+      
+      try {
+        const importedHabits = JSON.parse(fileContent);
+
+        if (!Array.isArray(importedHabits)) {
+          alert("Error: Imported JSON must be an array of habits.");
+          return;
+        }
+
+        for (let i = 0; i < importedHabits.length; i++) {
+          const habit = importedHabits[i];
+          const habitNumber = i + 1;
+
+          if (!habit.hasOwnProperty('id') || !habit.hasOwnProperty('name') || !habit.hasOwnProperty('completions')) {
+            alert(`Error: Habit ${habitNumber} is missing a required field (id, name, or completions).`);
+            return;
+          }
+        }
+
+        setHabits(importedHabits);
+        alert("Habits imported successfully!");
+
+      } catch (error) {
+        alert("Error: The uploaded file is not a valid JSON file.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = null;
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <HabitForm onAddHabit={addHabit} />
+
+        {/* The Import/Export Buttons */}
+        <div className="my-4 flex justify-center gap-4">
+
+          {/* Export Button */}
+          <button 
+            onClick={handleExport} 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Export Habits
+          </button>
+
+          {/* Import Button */}
+          <label 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+          >
+            Import Habits
+            <input 
+              type="file" 
+              accept=".json" 
+              onChange={handleFileImport}
+              style={{ display: 'none' }} 
+            />
+          </label>
+          
+        </div>
 
         {/* Achievements display */}
         <div className="mb-4 w-full max-w-sm text-left">
