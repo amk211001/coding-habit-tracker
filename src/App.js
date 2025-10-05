@@ -14,7 +14,6 @@ import AchievementModal from './components/AchievementModal';
 function App() {
   const {
     habits,
-    setHabits,
     calculateStreak,
     averageCompletion,
     isCompletedOn,
@@ -57,83 +56,87 @@ function App() {
     setSelectedHabit(null);
   }, []);
 
-  const handleExport = () => {
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
-      JSON.stringify(habits, null, 2)
-    )}`;
-    const link = document.createElement("a");
-    link.href = jsonString;
-    link.download = "habits.json";
-    link.click();
-  };
+  const handleExportCSV = () => {
+    if (habits.length === 0) {
+      alert("There are no habits to export.");
+      return;
+    }
 
-  const handleFileImport = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+    const headers = ['id', 'name', 'category', 'completions'];
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const fileContent = e.target.result;
+    const rows = habits.map(habit => {
+      const { id, name, category, completions } = habit;
       
-      try {
-        const importedHabits = JSON.parse(fileContent);
+      const escapedName = `"${name.replace(/"/g, '""')}"`;
+      const escapedCategory = `"${category.replace(/"/g, '""')}"`;
+      
+      const completionsJSON = `"${JSON.stringify(completions).replace(/"/g, '""')}"`;
 
-        if (!Array.isArray(importedHabits)) {
-          alert("Error: Imported JSON must be an array of habits.");
-          return;
-        }
+      return [id, escapedName, escapedCategory, completionsJSON].join(',');
+    });
 
-        for (let i = 0; i < importedHabits.length; i++) {
-          const habit = importedHabits[i];
-          const habitNumber = i + 1;
+    const csvContent = [
+      headers.join(','),
+      ...rows
+    ].join('\n');
 
-          if (!habit.hasOwnProperty('id') || !habit.hasOwnProperty('name') || !habit.hasOwnProperty('completions')) {
-            alert(`Error: Habit ${habitNumber} is missing a required field (id, name, or completions).`);
-            return;
-          }
-        }
-
-        setHabits(importedHabits);
-        alert("Habits imported successfully!");
-
-      } catch (error) {
-        alert("Error: The uploaded file is not a valid JSON file.");
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = null;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'habits.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
+
+  // START: Added JSON Export Logic
+  const handleExportJSON = () => {
+    if (habits.length === 0) {
+      alert("There are no habits to export.");
+      return;
+    }
+
+    // Convert the habits array to a pretty-printed JSON string
+    const jsonContent = JSON.stringify(habits, null, 2);
+
+    // Create a Blob from the JSON string
+    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+
+    // Create a link element to trigger the download
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'habits.json');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  // END: Added JSON Export Logic
 
   return (
     <div className="App">
       <header className="App-header">
         <HabitForm onAddHabit={addHabit} />
 
-        {/* The Import/Export Buttons */}
-        <div className="my-4 flex justify-center gap-4">
-
-          {/* Export Button */}
+        {/* START: Added Export Buttons Container */}
+        <div className="flex gap-2 mb-4">
           <button 
-            onClick={handleExport} 
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={handleExportCSV} 
+            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
           >
-            Export Habits
+            Export to CSV
           </button>
-
-          {/* Import Button */}
-          <label 
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+          <button 
+            onClick={handleExportJSON} 
+            className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
           >
-            Import Habits
-            <input 
-              type="file" 
-              accept=".json" 
-              onChange={handleFileImport}
-              style={{ display: 'none' }} 
-            />
-          </label>
-          
+            Export to JSON
+          </button>
         </div>
+        {/* END: Added Export Buttons Container */}
 
         {/* Achievements display */}
         <div className="mb-4 w-full max-w-sm text-left">
