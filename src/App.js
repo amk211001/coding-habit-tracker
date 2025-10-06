@@ -10,6 +10,7 @@ import CalendarToggle from './components/CalendarToggle';
 import HabitGrid from './components/HabitGrid';
 import HabitCard from './components/HabitCard';
 import AchievementModal from './components/AchievementModal';
+import NotificationSettings from './components/NotificationSettings/NotificationSettings';
 
 function App() {
   const {
@@ -136,6 +137,7 @@ function App() {
             Export to JSON
           </button>
         </div>
+        <NotificationSettings />
         {/* END: Added Export Buttons Container */}
 
         {/* Achievements display */}
