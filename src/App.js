@@ -26,8 +26,7 @@ function App() {
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [calendarMode, setCalendarMode] = useState('90day');
-  const [newlyUnlocked, setNewlyUnlocked] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
+  // Removed unused state: newlyUnlocked, setNewlyUnlocked, modalOpen, setModalOpen
   const [selectedHabit, setSelectedHabit] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   // User opt-in for habit reminders (permission control)
@@ -57,13 +56,13 @@ function App() {
     // Note: Handling newly unlocked achievements would need to be adjusted
   }, [toggleCompletion]);
 
+  // Show achievements modal for selected habit
   const handleViewAchievements = useCallback((habit) => {
     setSelectedHabit(habit);
-    setModalOpen(true);
   }, []);
 
+  // Close achievements modal
   const handleCloseModal = useCallback(() => {
-    setModalOpen(false);
     setSelectedHabit(null);
   }, []);
 
@@ -215,7 +214,7 @@ function App() {
                   averageCompletion={averageCompletion}
                   onViewAchievements={handleViewAchievements}
                   onDelete={deleteHabit}
-                  newlyUnlocked={newlyUnlocked}
+                  // newlyUnlocked prop removed
                 />
               ))}
             </div>

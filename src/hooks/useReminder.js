@@ -1,5 +1,6 @@
 
 // Custom hook to check for habit reminders and show notification if not completed by set time
+import { useEffect } from 'react';
 export function useReminder(habits, showReminder, permissionsGranted) {
   useEffect(() => {
     if (!permissionsGranted) return;

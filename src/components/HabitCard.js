@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Award, Star, Medal, TrendingUp } from 'lucide-react';
 import { achievements } from '../constants';
 
-function HabitCard({ habit, calculateStreak, averageCompletion, onViewAchievements, onDelete, newlyUnlocked }) {
+function HabitCard({ habit, calculateStreak, averageCompletion, onViewAchievements, onDelete }) {
   const streak = calculateStreak(habit);
   const avg = averageCompletion(habit);
 
@@ -14,11 +14,10 @@ function HabitCard({ habit, calculateStreak, averageCompletion, onViewAchievemen
           const ach = achievements.find(a => a.id === aid);
           const Icon = ach.icon === 'Award' ? Award : ach.icon === 'Star' ? Star : Medal;
           const bgColor = ach.icon === 'Award' ? 'bg-yellow-500' : ach.icon === 'Star' ? 'bg-blue-500' : 'bg-green-500';
-          const isNew = newlyUnlocked.includes(aid);
+          // No 'isNew' animation since newlyUnlocked is not used
           return (
             <motion.div
               key={aid}
-              initial={isNew ? { scale: 0 } : { scale: 1 }}
               animate={{ scale: 1 }}
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.5 }}
