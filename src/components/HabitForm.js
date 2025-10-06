@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { categories } from '../constants';
 
 function HabitForm({ onAddHabit }) {
-  const [newHabit, setNewHabit] = useState({ name: '', category: 'General' });
+  const [newHabit, setNewHabit] = useState({ name: '', category: 'General', reminderTime: '' });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -32,6 +32,13 @@ function HabitForm({ onAddHabit }) {
       >
         {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
       </select>
+      <input
+        type="time"
+        value={newHabit.reminderTime}
+        onChange={e => setNewHabit({ ...newHabit, reminderTime: e.target.value })}
+        className="mb-2 p-2 border border-gray-300 rounded-md w-full max-w-sm"
+        placeholder="Reminder time (optional)"
+      />
       <button
         type="submit"
         className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

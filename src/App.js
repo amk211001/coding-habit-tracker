@@ -1,5 +1,6 @@
 import './App.css';
 import { useState, useCallback } from 'react';
+import { useReminder } from './hooks/useReminder';
 import { subWeeks, addWeeks, subMonths, addMonths } from 'date-fns';
 import { useHabits } from './hooks/useHabits';
 import { achievements } from './constants';
@@ -28,6 +29,15 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedHabit, setSelectedHabit] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+  // Permissão para lembretes (opt-in)
+  const [reminderPermission, setReminderPermission] = useState(false);
+  // Função para mostrar toast/alert
+  const showReminder = (habit) => {
+    alert(`Reminder: Complete Daily ${habit.name}!`);
+  };
+
+  // Hook de lembrete: só ativa se permissão concedida
+  useReminder(habits, showReminder, reminderPermission);
 
   const filteredHabits = selectedCategory === 'All'
     ? habits
@@ -118,6 +128,17 @@ function App() {
 
   return (
     <div className="App">
+      {/* Permissão para lembretes */}
+      <div className="mb-4">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={reminderPermission}
+            onChange={e => setReminderPermission(e.target.checked)}
+          />
+          Enable habit reminders (opt-in)
+        </label>
+      </div>
       <header className="App-header">
         <HabitForm onAddHabit={addHabit} />
 
