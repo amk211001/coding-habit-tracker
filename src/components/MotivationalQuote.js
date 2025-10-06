@@ -26,14 +26,13 @@ function MotivationalQuote() {
   }
 
   return (
-    // This entire component is styled using existing utility classes from the project.
-    <div className="w-full max-w-2xl mx-auto p-4 mb-6 bg-gray-100 border border-gray-200 rounded-lg shadow-sm text-center">
-      <div className="flex items-center justify-center gap-2">
-        <Lightbulb size={20} className="text-yellow-500" />
-        <h3 className="font-semibold text-gray-800">Food for Thought</h3>
+    <div className="motivational-quote-container">
+      <div className="quote-header">
+        <Lightbulb size={20} className="quote-icon" />
+        <h3 className="quote-title">Food for Thought</h3>
       </div>
-      <p className="text-lg italic text-gray-700 mt-2">"{quote.text}"</p>
-      <span className="block text-right text-sm text-gray-500 font-medium mt-2">- {quote.author}</span>
+      <p className="quote-text">"{quote.text}"</p>
+      <span className="quote-author">- {quote.author}</span>
     </div>
   );
 }
