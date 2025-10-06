@@ -1,4 +1,4 @@
-import './App.css';
+import './App.css'; // This line imports the styles you just added
 import { useState, useCallback } from 'react';
 import { subWeeks, addWeeks, subMonths, addMonths } from 'date-fns';
 import { useHabits } from './hooks/useHabits';
@@ -46,7 +46,6 @@ function App() {
 
   const handleToggleCompletion = useCallback((habitId, day) => {
     toggleCompletion(habitId, day);
-    // Note: Handling newly unlocked achievements would need to be adjusted
   }, [toggleCompletion]);
 
   const handleViewAchievements = useCallback((habit) => {
@@ -135,7 +134,6 @@ function App() {
           </button>
         </div>
 
-        {/* Achievements display */}
         <div className="mb-4 w-full max-w-sm text-left">
           <h4 className="font-semibold mb-2">Achievements:</h4>
           {habits.map(habit => (
@@ -164,7 +162,6 @@ function App() {
         </div>
 
         <CategoryFilter selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
-
         <CalendarToggle calendarMode={calendarMode} onToggle={toggleCalendarMode} />
 
         {calendarMode !== '90day' && (
@@ -174,7 +171,6 @@ function App() {
           </div>
         )}
 
-        {/* Display current habits */}
         <div style={{ marginTop: '20px', textAlign: 'left' }}>
           <h3>Current Habits:</h3>
           {filteredHabits.length === 0 ? (
