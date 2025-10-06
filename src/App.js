@@ -66,6 +66,66 @@ function App() {
     setSelectedHabit(null);
   }, []);
 
+  const handleExportCSV = () => {
+    if (habits.length === 0) {
+      alert("There are no habits to export.");
+      return;
+    }
+
+    const headers = ['id', 'name', 'category', 'completions'];
+
+    const rows = habits.map(habit => {
+      const { id, name, category, completions } = habit;
+      
+      const escapedName = `"${name.replace(/"/g, '""')}"`;
+      const escapedCategory = `"${category.replace(/"/g, '""')}"`;
+      
+      const completionsJSON = `"${JSON.stringify(completions).replace(/"/g, '""')}"`;
+
+      return [id, escapedName, escapedCategory, completionsJSON].join(',');
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'habits.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // START: Added JSON Export Logic
+  const handleExportJSON = () => {
+    if (habits.length === 0) {
+      alert("There are no habits to export.");
+      return;
+    }
+
+    // Convert the habits array to a pretty-printed JSON string
+    const jsonContent = JSON.stringify(habits, null, 2);
+
+    // Create a Blob from the JSON string
+    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+
+    // Create a link element to trigger the download
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'habits.json');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  // END: Added JSON Export Logic
+
   return (
     <div className={appClasses}>
       <header className="App-header">
