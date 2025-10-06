@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { categories } from '../constants';
 
 function HabitForm({ onAddHabit }) {
+  // State includes reminderTime for optional daily reminder
   const [newHabit, setNewHabit] = useState({ name: '', category: 'General', reminderTime: '' });
 
   const handleSubmit = (e) => {
@@ -17,6 +18,7 @@ function HabitForm({ onAddHabit }) {
 
   return (
     <form onSubmit={handleSubmit} className="mb-4">
+      {/* Habit name input */}
       <input
         type="text"
         placeholder="Habit name"
@@ -25,6 +27,7 @@ function HabitForm({ onAddHabit }) {
         className="mb-2 p-2 border border-gray-300 rounded-md w-full max-w-sm"
         required
       />
+      {/* Category selection */}
       <select
         value={newHabit.category}
         onChange={(e) => setNewHabit({ ...newHabit, category: e.target.value })}
@@ -32,6 +35,7 @@ function HabitForm({ onAddHabit }) {
       >
         {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
       </select>
+      {/* Reminder time input (optional) */}
       <input
         type="time"
         value={newHabit.reminderTime}
