@@ -10,6 +10,9 @@ import CalendarToggle from './components/CalendarToggle';
 import HabitGrid from './components/HabitGrid';
 import HabitCard from './components/HabitCard';
 import AchievementModal from './components/AchievementModal';
+// --- 1. IMPORT THE NEW MOTIVATIONAL QUOTE COMPONENT ---
+import MotivationalQuote from './components/MotivationalQuote';
+
 
 function App() {
   const {
@@ -90,21 +93,15 @@ function App() {
     link.click();
     document.body.removeChild(link);
   };
-
-  // START: Added JSON Export Logic
+  
   const handleExportJSON = () => {
     if (habits.length === 0) {
       alert("There are no habits to export.");
       return;
     }
 
-    // Convert the habits array to a pretty-printed JSON string
     const jsonContent = JSON.stringify(habits, null, 2);
-
-    // Create a Blob from the JSON string
     const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
-
-    // Create a link element to trigger the download
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -114,14 +111,15 @@ function App() {
     link.click();
     document.body.removeChild(link);
   };
-  // END: Added JSON Export Logic
 
   return (
     <div className="App">
       <header className="App-header">
         <HabitForm onAddHabit={addHabit} />
+        
+        {/* --- 2. RENDER THE NEW COMPONENT RIGHT HERE --- */}
+        <MotivationalQuote />
 
-        {/* START: Added Export Buttons Container */}
         <div className="flex gap-2 mb-4">
           <button 
             onClick={handleExportCSV} 
@@ -136,7 +134,6 @@ function App() {
             Export to JSON
           </button>
         </div>
-        {/* END: Added Export Buttons Container */}
 
         {/* Achievements display */}
         <div className="mb-4 w-full max-w-sm text-left">
