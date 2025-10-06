@@ -1,50 +1,60 @@
-import './App.css';
-import { useState, useCallback } from 'react';
-import { subWeeks, addWeeks, subMonths, addMonths } from 'date-fns';
-import { useHabits } from './hooks/useHabits';
-import { achievements } from './constants';
-import { initialHabits } from './constants';
-import HabitForm from './components/HabitForm';
-import CategoryFilter from './components/CategoryFilter';
-import CalendarToggle from './components/CalendarToggle';
-import HabitGrid from './components/HabitGrid';
-import HabitCard from './components/HabitCard';
-import AchievementModal from './components/AchievementModal';
+import { useState, useEffect } from 'react';
+import eachDayOfInterval from 'date-fns/eachDayOfInterval';
+import startOfWeek from 'date-fns/startOfWeek';
+import endOfWeek from 'date-fns/endOfWeek';
+import format from 'date-fns/format';
+import isToday from 'date-fns/isToday';
+
+const initialHabits = [
+  { id: 1, name: 'Code daily', category: 'General', completions: [new Date()] },
+  { id: 2, name: 'Read tech articles', category: 'General', completions: [] },
+];
 
 function App() {
-  const {
-    habits,
-    calculateStreak,
-    averageCompletion,
-    isCompletedOn,
-    toggleCompletion,
-    addHabit,
-    deleteHabit,
-  } = useHabits(initialHabits);
-
+  const [habits, setHabits] = useState(initialHabits);
+  const [newHabit, setNewHabit] = useState({ name: '', category: 'General' });
+  const [accessibility, setAccessibility] = useState({ largeText: false, highContrast: false });
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [calendarMode, setCalendarMode] = useState('90day');
-  const [newlyUnlocked, setNewlyUnlocked] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedHabit, setSelectedHabit] = useState(null);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentWeekDays, setCurrentWeekDays] = useState([]);
+  const categories = ['Coding', 'Learning', 'Project', 'Review', 'General'];
+
+  const addHabit = () => {
+    if (newHabit.category.trim() === '') {
+      console.error('Category cannot be empty');
+      return;
+    }
+    const habitToAdd = { ...newHabit, id: Date.now(), completions: [] };
+    setHabits([...habits, habitToAdd]);
+    setNewHabit({ name: '', category: 'General' });
+    console.log('Habits:', habits);
+  };
+
+  const toggleLargeText = () => {
+  setAccessibility(prev => ({ ...prev, largeText: !prev.largeText }));
+  };
+
+  const toggleHighContrast = () => {
+    setAccessibility(prev => ({ ...prev, highContrast: !prev.highContrast }));
+  };
+
+  const appClasses = [
+    "App",
+    accessibility.largeText ? "large-text" : "",
+    accessibility.highContrast ? "high-contrast" : ""
+  ].join(" ").trim();
 
   const filteredHabits = selectedCategory === 'All'
     ? habits
     : habits.filter(habit => habit.category === selectedCategory);
 
-  const toggleCalendarMode = useCallback(() => {
-    setCalendarMode(prev => {
-      if (prev === '90day') return 'weekly';
-      if (prev === 'weekly') return 'monthly';
-      return '90day';
-    });
-  }, []);
-
-  const handleToggleCompletion = useCallback((habitId, day) => {
-    toggleCompletion(habitId, day);
-    // Note: Handling newly unlocked achievements would need to be adjusted
-  }, [toggleCompletion]);
+  useEffect(() => {
+    if (calendarMode === 'weekly') {
+      const start = startOfWeek(new Date(), { weekStartsOn: 0 }); // Sunday
+      const end = endOfWeek(new Date(), { weekStartsOn: 0 });
+      setCurrentWeekDays(eachDayOfInterval({ start, end }));
+    }
+  }, [calendarMode]);
 
   const handleViewAchievements = useCallback((habit) => {
     setSelectedHabit(habit);
@@ -117,52 +127,50 @@ function App() {
   // END: Added JSON Export Logic
 
   return (
-    <div className="App">
+    <div className={appClasses}>
       <header className="App-header">
-        <HabitForm onAddHabit={addHabit} />
-
-        {/* START: Added Export Buttons Container */}
-        <div className="flex gap-2 mb-4">
-          <button 
-            onClick={handleExportCSV} 
-            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-          >
-            Export to CSV
+        {" "}
+        <div style={{ position: "absolute", top: 10, right: 10 }}>
+           <button onClick={toggleLargeText}>Toggle Large Text</button>{" "}
+          <button onClick={toggleHighContrast} style={{ marginLeft: "10px" }}>
+            Toggle High Contrast
           </button>
-          <button 
-            onClick={handleExportJSON} 
-            className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
-          >
-            Export to JSON
-          </button>
+          {" "}
         </div>
-        {/* END: Added Export Buttons Container */}
+        {/* Input for new habit name */}
+        <input
+          type="text"
+          placeholder="Habit name"
+          value={newHabit.name}
+          onChange={(e) => setNewHabit({ ...newHabit, name: e.target.value })}
+          className="mb-2 p-2 border border-gray-300 rounded-md w-full max-w-sm"
+        />
+        <select
+          value={newHabit.category}
+          onChange={(e) => setNewHabit({ ...newHabit, category: e.target.value })}
+          className="mb-2 p-2 border border-gray-300 rounded-md w-full max-w-sm"
+        >
+          {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+        </select>
+        <button
+          onClick={addHabit}
+          className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Add Habit
+        </button>
 
-        {/* Achievements display */}
-        <div className="mb-4 w-full max-w-sm text-left">
-          <h4 className="font-semibold mb-2">Achievements:</h4>
-          {habits.map(habit => (
-            <div key={habit.id} className="mb-2 border p-2 rounded bg-gray-50">
-              <div className="font-bold">{habit.name}</div>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {habit.achievements.length === 0 ? (
-                  <span className="text-gray-500 italic">No achievements yet</span>
-                ) : (
-                  habit.achievements.map(aid => {
-                    const ach = achievements.find(a => a.id === aid);
-                    return (
-                      <span
-                        key={aid}
-                        className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-semibold"
-                        title={ach ? ach.name : aid}
-                      >
-                        {ach ? ach.name : aid}
-                      </span>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+        {/* Filter buttons */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {['All', ...categories].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(selectedCategory === cat ? 'All' : cat)}
+              className={`px-3 py-1 rounded-full border ${
+                selectedCategory === cat ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700'
+              } focus:outline-none`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
 
