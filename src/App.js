@@ -12,9 +12,9 @@ import CalendarToggle from './components/CalendarToggle';
 import HabitGrid from './components/HabitGrid';
 import HabitCard from './components/HabitCard';
 import AchievementModal from './components/AchievementModal';
+import NotificationSettings from './components/NotificationSettings/NotificationSettings';
 // --- 1. IMPORT THE NEW MOTIVATIONAL QUOTE COMPONENT ---
 import MotivationalQuote from './components/MotivationalQuote';
-
 
 function App() {
   const {
@@ -155,6 +155,8 @@ function App() {
             Export to JSON
           </button>
         </div>
+        <NotificationSettings />
+        {/* END: Added Export Buttons Container */}
 
         <div className="mb-4 w-full max-w-sm text-left">
           <h4 className="font-semibold mb-2">Achievements:</h4>
