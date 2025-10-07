@@ -1,5 +1,7 @@
 import './App.css'; // This line imports the styles you just added
 import { useState, useCallback } from 'react';
+// Import custom hook for habit reminders
+import { useReminder } from './hooks/useReminder';
 import { subWeeks, addWeeks, subMonths, addMonths } from 'date-fns';
 import { useHabits } from './hooks/useHabits';
 import { achievements } from './constants';
@@ -27,10 +29,18 @@ function App() {
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [calendarMode, setCalendarMode] = useState('90day');
-  const [newlyUnlocked, setNewlyUnlocked] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
+  // Removed unused state: newlyUnlocked, setNewlyUnlocked, modalOpen, setModalOpen
   const [selectedHabit, setSelectedHabit] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+  // User opt-in for habit reminders (permission control)
+  const [reminderPermission, setReminderPermission] = useState(false);
+  // Function to show a simple toast/alert for reminders
+  const showReminder = (habit) => {
+    alert(`Reminder: Complete Daily ${habit.name}!`);
+  };
+
+  // Integrate reminder hook: only active if user has opted in
+  useReminder(habits, showReminder, reminderPermission);
 
   const filteredHabits = selectedCategory === 'All'
     ? habits
@@ -48,13 +58,13 @@ function App() {
     toggleCompletion(habitId, day);
   }, [toggleCompletion]);
 
+  // Show achievements modal for selected habit
   const handleViewAchievements = useCallback((habit) => {
     setSelectedHabit(habit);
-    setModalOpen(true);
   }, []);
 
+  // Close achievements modal
   const handleCloseModal = useCallback(() => {
-    setModalOpen(false);
     setSelectedHabit(null);
   }, []);
 
@@ -113,6 +123,18 @@ function App() {
 
   return (
     <div className="App">
+      {/* Reminder permission opt-in UI */}
+      <div className="mb-4">
+        {/* Checkbox to allow user to enable/disable reminders */}
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={reminderPermission}
+            onChange={e => setReminderPermission(e.target.checked)}
+          />
+          Enable habit reminders (opt-in)
+        </label>
+      </div>
       <header className="App-header">
         <HabitForm onAddHabit={addHabit} />
         
@@ -185,7 +207,7 @@ function App() {
                   averageCompletion={averageCompletion}
                   onViewAchievements={handleViewAchievements}
                   onDelete={deleteHabit}
-                  newlyUnlocked={newlyUnlocked}
+                  // newlyUnlocked prop removed
                 />
               ))}
             </div>
