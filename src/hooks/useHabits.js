@@ -39,7 +39,7 @@ export function useHabits(initialHabits) {
           newCompletions = [...habit.completions, day];
         }
         const updatedHabit = { ...habit, completions: newCompletions };
-        const { achievements: newAchievements, newUnlocked } = checkAndAwardAchievements(updatedHabit);
+        const { achievements: newAchievements } = checkAndAwardAchievements(updatedHabit);
         updatedHabit.achievements = newAchievements;
         // Note: Handling newly unlocked achievements should be done in the component using this hook
         return updatedHabit;
@@ -51,7 +51,13 @@ export function useHabits(initialHabits) {
     if (newHabit.category.trim() === '') {
       throw new Error('Category cannot be empty');
     }
-    const habitToAdd = { ...newHabit, id: Date.now(), completions: [], achievements: [] };
+    const habitToAdd = {
+      ...newHabit,
+      id: Date.now(),
+      completions: [],
+      achievements: [],
+      reminderTime: newHabit.reminderTime || '',
+    };
     setHabits(prev => [...prev, habitToAdd]);
   };
 
