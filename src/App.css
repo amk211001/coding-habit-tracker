@@ -289,3 +289,51 @@ input[type="text"]:focus, select:focus {
     transform: rotate(360deg);
   }
 }
+
+/* --- Styles for Motivational Quote Component --- */
+
+.motivational-quote-container {
+  width: 100%;
+  max-width: 600px; /* Adjust max-width as needed */
+  margin: 0 auto 1.5rem auto; /* Centers the component and adds bottom margin */
+  padding: 1.5rem;
+  background-color: #f8f9fa; /* A light, clean background */
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.quote-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* Space between icon and title */
+}
+
+.quote-icon {
+  color: #f59e0b; /* A warm yellow for the lightbulb */
+}
+
+.quote-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #343a40;
+  margin: 0;
+}
+
+.quote-text {
+  font-size: 1.25rem;
+  font-style: italic;
+  color: #495057;
+  margin: 1rem 0;
+}
+
+.quote-author {
+  display: block; /* Makes it take its own line */
+  text-align: right; /* Aligns the author to the right */
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6c757d;
+  margin-top: 0.5rem;
+}
