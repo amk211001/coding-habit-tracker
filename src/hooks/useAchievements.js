@@ -3,9 +3,13 @@ import { achievements } from '../constants';
 // Calculate streak for a habit
 export function calculateStreak(habit) {
   if (!habit.completions.length) return 0;
-  const sortedDates = habit.completions
-    .map(d => new Date(d))
-    .sort((a, b) => b - a);
+
+  // Remove duplicates and normalize dates
+  const uniqueDates = [...new Set(habit.completions.map(d => new Date(d).toDateString()))]
+    .map(dateStr => new Date(dateStr));
+
+  const sortedDates = uniqueDates.sort((a, b) => b - a);
+
   let streak = 1;
   for (let i = 1; i < sortedDates.length; i++) {
     const diff = (sortedDates[i - 1] - sortedDates[i]) / (1000 * 60 * 60 * 24);
